@@ -133,7 +133,7 @@ async def challenge(ctx, m: discord.Member):
 				return
 
 	add_challenge(ctx.channel, ctx.author, m)
-	await ctx.send("You have been challenged {}, do you have thee balls to accept it?".format(m.mention))
+	await ctx.send("You have been challenged {}, do you have the balls to accept it?".format(m.mention))
 
 
 @bot.command()
