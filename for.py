@@ -112,6 +112,67 @@ class Game:
 
 bot = commands.Bot(command_prefix="!")
 games = {}
+challenges = {} # channel -> [ (challeger, challenged) ]
+
+def remove_challenge(channel, a, b):
+	challenges[channel].remove((a, b))
+	if not challenges[channel]:
+		challenges.pop(channel)
+
+def add_challenge(channel, a, b):
+	if channel not in challenges:
+		challenges[channel] = []
+	challenges[channel].append((a, b))
+
+@bot.command()
+async def challenge(ctx, m: discord.Member):
+	if ctx.channel in challenges:
+		for _, b in challenges[ctx.channel]:
+			if m == b:
+				await ctx.send("He has been challenged already! Give him a break!")
+				return
+
+	add_challenge(ctx.channel, ctx.author, m)
+	await ctx.send("You have been challenged {}, do you have thee balls to accept it?".format(m.mention))
+
+
+@bot.command()
+async def accept(ctx):
+	if not ctx.channel in challenges:
+		await ctx.send("Chill, noone is challenging you.")
+		return
+	
+	for a, b in challenges[ctx.channel]:
+		if b == ctx.author:
+			remove_challenge(ctx.channel, a, b)
+			await start_game(ctx.channel, b, a)
+			await ctx.send("Challenge accepted!")
+			return
+
+	await ctx.send("Chill, noone is challenging you.")
+
+
+@bot.command()
+async def decline(ctx):
+	if not ctx.channel in challenges:
+		await ctx.send("Chill, noone is challenging you.")
+		return
+	
+	for a, b in challenges[ctx.channel]:
+		if b == ctx.author:
+			remove_challenge(ctx.channel, a, b)
+			await ctx.send("Run, you coward!")
+			return
+	
+	await ctx.send("Chill, noone is challenging you.")
+
+async def start_game(channel, p1, p2):
+	if channel in games:
+		await channel.send("Game is already under way you dummy!")
+		return
+
+	games[channel] = Game(p1, p2)
+	await channel.send( games[channel].draw_board() )
 
 
 def end_game(channel):
@@ -156,13 +217,7 @@ async def stats(ctx):
 
 @bot.command()
 async def start(ctx, p1: discord.Member, p2: discord.Member):
-	channel = ctx.channel
-	if channel in games:
-		await channel.send("Game is already under way you dummy!")
-		return
-
-	games[channel] = Game(p1, p2)
-	await channel.send( games[channel].draw_board() )
+	await start_game(ctx.channel, p1, p2)
 
 
 @bot.command()
@@ -256,4 +311,4 @@ async def on_message(message):
 
 # run the bad boi
 with open(TOKEN_FILE, "r") as file:
-	bot.run(file.read().rstrip())
+	bot.run( file.read().rstrip() )
