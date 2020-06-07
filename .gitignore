@@ -1,3 +1,6 @@
+# no secrets shall be known
+secret_*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

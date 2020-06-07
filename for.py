@@ -3,6 +3,8 @@ import asyncio
 from discord.ext import commands
 import stater
 
+TOKEN_FILE = "secret_token_stuff.txt"
+
 class Game:
 	W = 7
 	H = 6
@@ -251,6 +253,7 @@ async def on_message(message):
 		if win:	
 			await message.channel.send('{0} won! gg wp!'.format(message.author.mention))
 """
-		
-bot.run('NzE4MDQ2MTY2NjY2OTY5MDkx.XtjKow._QDdd_W16OnqloPut2ZRJYocIcM')
 
+# run the bad boi
+with open(TOKEN_FILE, "r") as file:
+	bot.run(file.read().rstrip())
