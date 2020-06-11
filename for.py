@@ -8,25 +8,20 @@ TOKEN_FILE = "secret_token_stuff.txt"
 
 bot = commands.Bot(command_prefix="!")
 games = {}
-challenges = {} # channel -> [ (challeger, challenged) ]
+challenges = {} # channel -> (challeger, challenged)
 
-def remove_challenge(channel, a, b):
-	challenges[channel].remove((a, b))
-	if not challenges[channel]:
-		challenges.pop(channel)
+def remove_challenge(channel):
+	challenges.pop(channel)
 
 def add_challenge(channel, a, b):
-	if channel not in challenges:
-		challenges[channel] = []
-	challenges[channel].append((a, b))
+	challenges[channel] = (a, b)
 
 @bot.command()
 async def challenge(ctx, m: discord.Member):
-	if ctx.channel in challenges:
-		for _, b in challenges[ctx.channel]:
-			if m == b:
-				await ctx.send("He has been challenged already! Give him a break!")
-				return
+	channel = ctx.channel
+	if channel in challenges:
+		await ctx.send("There is already an challenge in this channel. Go somewhere else!")
+		return
 
 	add_challenge(ctx.channel, ctx.author, m)
 	await ctx.send("You have been challenged {}, do you have the balls to accept it?".format(m.mention))
@@ -34,33 +29,26 @@ async def challenge(ctx, m: discord.Member):
 
 @bot.command()
 async def accept(ctx):
-	if not ctx.channel in challenges:
+	if not ctx.channel in challenges or challenges[ctx.channel][1] != ctx.author:
 		await ctx.send("Chill, noone is challenging you.")
 		return
 	
-	for a, b in challenges[ctx.channel]:
-		if b == ctx.author:
-			remove_challenge(ctx.channel, a, b)
-			await start_game(ctx.channel, b, a)
-			await ctx.send("Challenge accepted!")
-			return
-
-	await ctx.send("Chill, noone is challenging you.")
+	a, b = challenges[ctx.channel]
+	remove_challenge(ctx.channel)
+	await start_game(ctx.channel, b, a)
+	await ctx.send("The game is on!")
+	return
 
 
 @bot.command()
 async def decline(ctx):
-	if not ctx.channel in challenges:
+	if not ctx.channel in challenges or challenges[ctx.channel][1] != ctx.author:
 		await ctx.send("Chill, noone is challenging you.")
 		return
 	
-	for a, b in challenges[ctx.channel]:
-		if b == ctx.author:
-			remove_challenge(ctx.channel, a, b)
-			await ctx.send("Run, you coward!")
-			return
-	
-	await ctx.send("Chill, noone is challenging you.")
+	remove_challenge(ctx.channel)
+	await ctx.send("Run, you coward!")
+
 
 async def start_game(channel, p1, p2):
 	if channel in games:
