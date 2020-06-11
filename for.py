@@ -3,6 +3,7 @@ import asyncio
 from discord.ext import commands
 import stater
 from game import Game
+import ai
 
 TOKEN_FILE = "secret_token_stuff.txt"
 
@@ -57,15 +58,32 @@ async def start_game(channel, p1, p2):
 
 	games[channel] = Game(p1, p2)
 	await channel.send( games[channel].draw_board() )
+	print(p1.display_name)
+	g = games[channel]
+	if g.current_player() == bot.user:
+		await make_ai_move(channel, games[channel])
+
+
+async def make_ai_move(channel, g):
+	if g.current_player() != bot.user:
+		print("Not  ai turn!")
+		return
+
+	win = g.player_move( ai.next_move(g) )
+
+	await channel.send( g.draw_board() )
+	if win:
+		await player_won(channel, g, bot.user)
+		end_game(channel)
 
 
 def end_game(channel):
 	games.pop(channel)
 
 
-async def player_won(ctx, g, p):
-	stater.write_game_result(ctx.guild.name, p.id, g.enemy(p).id)
-	await ctx.channel.send('{0} won! gg wp!'.format(p.mention))
+async def player_won(channel, g, p):
+	stater.write_game_result(channel.guild.name, p.id, g.enemy(p).id)
+	await channel.send('{0} won! gg wp!'.format(p.mention))
 
 
 async def validate_turn(ctx):
@@ -117,7 +135,7 @@ async def surr(ctx):
 		return
 	g = games[ctx.channel]
 	p = ctx.message.author
-	await player_won(ctx, g, g.enemy(p))
+	await player_won(ctx.channel, g, g.enemy(p))
 	end_game(ctx.channel)
 
 
@@ -130,8 +148,12 @@ async def put(ctx, x: int):
 	win = g.player_move(x)
 	await ctx.channel.send( g.draw_board() )
 	if win:
-		await player_won(ctx, g, p)
+		await player_won(ctx.channel, g, p)
 		end_game(ctx.channel)
+		return
+
+	if g.current_player() == bot.user:
+		await make_ai_move(ctx.channel, g)
 
 @bot.command()
 async def show(ctx):
