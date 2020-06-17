@@ -8,6 +8,7 @@ import ai
 TOKEN_FILE = "secret_token_stuff.txt"
 
 bot = commands.Bot(command_prefix="!")
+
 games = {}
 challenges = {} # channel -> (challeger, challenged)
 
