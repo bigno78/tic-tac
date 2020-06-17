@@ -3,6 +3,7 @@ from game import Board
 import copy
 import math
 
+INF=1000000000
 
 def count_score(board, i, j):
     cnt = 0
@@ -13,7 +14,7 @@ def count_score(board, i, j):
             pass
         if val >= Game.win_count:
             #print("bruh", board.at(i, j), board.h - 1 - i, j)
-            return math.inf
+            return INF
         cnt += val
     return cnt
 
@@ -59,7 +60,7 @@ def minimax(board, depth, my_idx, player_idx, alpha, beta):
     maximize_score = (player_idx == my_idx) 
     mult = 1 if maximize_score else -1
 
-    best = -mult*math.inf
+    best = -mult*INF
     move = None
 
     for col in range(board.w):
