@@ -2,6 +2,7 @@ from game import Game
 from game import Board
 import copy
 import math
+import time
 
 INF=1000000000
 
@@ -38,12 +39,30 @@ def eval_board(board, player: int):
     o = False
     return score
 
+def score_delta(board, i, j):
+    d = 0
+    for x, y in [ (0, 1), (1, 0), (1, 1), (1, -1) ]:
+        val_pos = board.count_dir_single(i, j, x, y)
+        val_neg = board.count_dir_single(i, j, -x, -y)
+
+        d += val_pos*(1 + val_neg) + val_neg*(1 + val_pos) + val_neg + val_pos + 1
+
+    return d
+
 states = 0
 def next_move(g):
     global states
     states = 0
-    val = minimax(g.board, 7, g.curr, g.curr, -math.inf, math.inf)[1]
-    print("states visited:", states)
+    start = time.time()
+    
+    _, val = minimax(g.board, 7, g.curr, g.curr, -INF, INF)
+    
+    elapsed = time.time() - start
+    print("Move: {}".format(val))
+    print("Nodes visited: {}".format(states))
+    print("Time elapsed: {}".format(elapsed))
+    print("Time per node: {}".format(elapsed/states))
+    
     return val
 
 
@@ -68,9 +87,9 @@ def minimax(board, depth, my_idx, player_idx, alpha, beta):
             continue
         
         board.push(col, player_idx)
-        if board.has_at_least(board.top_idx(col), col, Game.win_count):
-                board.pop(col)
-                return (mult*math.inf, col)
+        #if board.has_at_least(board.top_idx(col), col, Game.win_count):
+        #        board.pop(col)
+        #        return (mult*INF, col)
 
         score, _ = minimax(board, depth-1, my_idx, other_player(player_idx), alpha, beta)
         board.pop(col)
