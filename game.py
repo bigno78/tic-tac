@@ -119,13 +119,22 @@ class Game:
 		return False
 
 	def player_move(self, x):
+		if self.winner is not None:
+			return False
+
 		if not self.board.valid_move(x):
 			print('invalid move {0}'.format(x))
 			return
 
 		self.board.push(x, self.curr)
+
+		won = self.check_win(x)
+		if won:
+			self.winner = self.current_player()
+			return True
+
 		self.next_round()
-		return self.check_win(x)
+		
 
 	def current_player(self):
 		return self.players[self.curr]
