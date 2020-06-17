@@ -89,70 +89,7 @@ def minimax(board, depth, my_idx, player_idx, alpha, beta):
         if beta <= alpha:
             break
 
-    #if best == -math.inf:
+    #if best == -INF:
     #    print("u gonna lose!")
 
     return (best, move)
-"""
-def minimax(board, depth, my_idx: int, player_idx: int):
-    if depth == 0:
-        return (eval_board(board, my_idx), None)
-
-    if player_idx == my_idx:
-        best = -math.inf
-        move = None
-        for col in range(board.w):
-            pushed = False
-            if not board.column_full(col):
-                board.push(col, player_idx)
-                pushed = True
-                if board.has_at_least(board.top_idx(col), col, Game.win_count):
-                    board.pop(col)
-                    return (math.inf, col)
-            score, _ = minimax(board, depth - 1, my_idx, other_player(player_idx))
-            if pushed:
-                board.pop(col)
-            #print("max:", score)
-            #print("-----------------------")
-            if move is None or score > best:
-                move = col
-                best = score
-        return (best, move)
-    else:
-        best = math.inf
-        move = None
-        for col in range(board.w):
-            pushed = False
-            if not board.column_full(col):
-                board.push(col, player_idx)
-                pushed = True
-                if board.has_at_least(board.top_idx(col), col, Game.win_count):
-                    board.pop(col)
-                    return (-math.inf, col)
-            score, _ = minimax(board, depth - 1, my_idx, other_player(player_idx))
-            if pushed:
-                board.pop(col)
-            if move is None or score < best:
-                move = col
-                best = score
-           # print("min:", score, "best:", best)
-        return (best, move)
-"""
-
-def  simle():
-    move = None
-    best = None
-    mark = g.current_mark()
-    for j in range(Game.W):
-        i = Game.H - g.heights[j] - 1
-        if i < 0:
-            continue 
-        g.board[i][j] = mark
-        val = eval_board(g, g.curr)
-        if best is None or val > best:
-            best = val
-            move = j
-        g.board[i][j] = Game.EMPTY
-
-    print(move)
-    return move
