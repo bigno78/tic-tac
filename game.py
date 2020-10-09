@@ -9,48 +9,53 @@ class Board:
 	def __init__(self, w, h):
 		self.w = w
 		self.h = h
-		self.board = [ [ None for _ in range(self.w) ] for _ in range(self.h) ]
+		self.data = [ None for _ in range(self.w*self.h) ]
 		self.heights = [ 0 for _ in range(self.w) ]
 
-	# get the index of the topmost mark
+	def at(self, col, row):
+		return self.data[ col*self.h + row ]
+
+	def set_mark(self, col, row, val):
+		self.data[ col*self.h + row ] = val
+
+	# Get the next free index in the specified column
 	def top_idx(self, col):
-		return self.h - self.heights[col]
+		return self.heights[col]
 
 	def column_full(self, col):
 		return self.heights[col] >= self.h
 
 	# put a mark to column col
-	def push(self, col, mark: int):
-		self.board[self.top_idx(col) - 1][col] = mark
+	def push(self, col: int, mark: int):
+		self.set_mark(col, self.top_idx(col), mark)
 		self.heights[col] += 1
 
 	# pop a mark from column col
 	def pop(self, col):
-		mark = self.board[self.top_idx(col)][col]
-		self.board[self.top_idx(col)][col] = None
+		mark = self.at(col, self.top_idx(col) - 1)
+		self.set_mark(col, self.top_idx(col) - 1, None)
 		self.heights[col] -= 1
 		return mark
 
-	def at(self, i, j):
-		return self.board[i][j]
-
-	def valid_x(self, x):
+	def valid_col(self, x):
 		return x >= 0 and x < self.w
 
-	def valid_y(self, y):
+	def valid_row(self, y):
 		return y >= 0 and y < self.h
 
-	def valid_pos(self, y, x):
-		return self.valid_x(x) and self.valid_y(y)
+	def valid_pos(self, col, row):
+		return self.valid_col(col) and self.valid_row(row)
 
-	def valid_move(self, x):
-		return self.valid_x(x) and self.heights[x] < self.h
+	def valid_move(self, col):
+		return self.valid_col(col) and not self.column_full(col)
 
-	def count_dir_single(self, x, y, dx, dy):
+	# Count the number of consecutive occurences of mark at (col, row) in the direction (dx, dy).
+	# The mark at (col, row) is NOT counted.
+	def count_dir_single(self, col, row, dx, dy):
 		cnt = 0
-		i = x + dx
-		j = y + dy
-		while self.valid_pos(i, j) and self.board[i][j] == self.board[x][y]:
+		i = col + dx
+		j = row + dy
+		while self.valid_pos(i, j) and self.at(i, j) == self.at(col, row):
 			cnt += 1
 			i += dx
 			j += dy
@@ -76,8 +81,9 @@ class Board:
 		s.append("```")
 		k = len(str(self.w))
 
-		for row in self.board:
-			for x in row:
+		for row in range(self.h - 1, -1, -1):
+			for col in range(self.w):
+				x = self.at(col, row)
 				s.append( ('{:^' + str(k + 1) + '}').format(self.mark_str(x)) )
 			s.append("\n")
 
@@ -112,11 +118,7 @@ class Game:
 		self.curr = (self.curr + 1) % 2
 
 	def check_win(self, j):
-		i = self.board.top_idx(j)
-		for dx, dy in { (0, 1), (1, 0), (1, 1), (1, -1) }:
-			if self.board.count_dir(i, j, dx, dy) >= self.win_count:
-				return True
-		return False
+		return self.board.has_at_least(j, self.board.top_idx(j) - 1, self.win_count)
 
 	def player_move(self, x):
 		if self.winner is not None:

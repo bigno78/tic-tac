@@ -18,18 +18,18 @@ def count_score(board, i, j):
 def eval_board(board, player: int):
     score = 0
     #global o
-    for j in range(board.w):
-        i = board.h - 1
+    for col in range(board.w):
+        row = 0
         #print(i)
-        while i >= 0 and board.at(i, j) != None:
+        while row < board.top_idx(col):
             #print("x")
-            if player == board.at(i, j):
-                score += count_score(board, i, j)
+            if player == board.at(col, row):
+                score += count_score(board, col, row)
             else:
-                score -= count_score(board, i, j)
+                score -= count_score(board, col, row)
             #if o:
             #    print(score)
-            i -= 1
+            row += 1
     
     #o = False
     return score
@@ -52,29 +52,30 @@ def score_delta(board, i, j):
     return d
 
 states = 0
-DEPTH = 5
+DEPTH = 8
+NODE_ORDER = [3, 2, 4, 1, 5, 0, 6]
 def next_move(g):
     global states
     states = 0
     
     start = time.time()
-    _, val = minimax(g.board, DEPTH, g.curr, g.curr, -math.inf, math.inf)
-    print()
-    print()
-    print()
+    #_, val = minimax(g.board, DEPTH, g.curr, g.curr, -math.inf, math.inf)
+    #print()
+    #print()
+    #print()
     score, val2 = negamax(g.board, DEPTH, g.curr, g.curr, -math.inf, math.inf)
     elapsed = time.time() - start
 
-    if val != val2:
-        print("WROOOOOOOOOOOOOOOOOOOOOONG!!!!!!!!!!!")
+    #if val != val2:
+    #    print("WROOOOOOOOOOOOOOOOOOOOOONG!!!!!!!!!!!")
 
-    print("Move: {} X {}".format(val, val2))
+    #print("Move: {} X {}".format(val, val2))
     print("Score: {}".format(score))
     print("Nodes visited: {}".format(states))
     print("Time elapsed: {}".format(elapsed))
-    print("Time per node: {}".format(elapsed/states))
+    #print("Time per node: {}".format(elapsed/states))
     
-    return val
+    return val2
 
 
 def other_player(player: int):
@@ -92,12 +93,12 @@ def negamax(board, depth, main_player, curr_player, alpha, beta):
     best = -math.inf
     move = None
 
-    for col in range(board.w):
+    for col in NODE_ORDER:
         if board.column_full(col):
             continue
         
         board.push(col, curr_player)
-        if board.has_at_least(board.top_idx(col), col, Game.win_count):
+        if board.has_at_least(col, board.top_idx(col) - 1, Game.win_count):
             board.pop(col)
             return math.inf, col
 
@@ -135,7 +136,7 @@ def minimax(board, depth, my_idx, player_idx, alpha, beta):
             continue
         
         board.push(col, player_idx)
-        if board.has_at_least(board.top_idx(col), col, Game.win_count):
+        if board.has_at_least(col, board.top_idx(col) - 1, Game.win_count):
             board.pop(col)
             return (mult*math.inf, col)
 
